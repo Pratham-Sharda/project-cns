@@ -70,7 +70,7 @@ bool validate_username(const std::string &username)
 }
 const double MAX_AMOUNT = 4294967295.99; // Maximum allowed amount
 // Function to validate currency input as whole and fractional parts
-bool isValidAmount(double input1)
+bool isValidAmount(double &input1)
 {   
     std::string input= std::to_string(input1);
     std::regex pattern("^(0|[1-9][0-9]*)\\.([0-9]{2})$");
@@ -80,8 +80,8 @@ bool isValidAmount(double input1)
     }
 
     // Check if the amount is within the valid range [0.00, 4294967295.99]
-    double amount = std::stod(input);
-    return amount > 0.00 && amount <= MAX_AMOUNT;
+    // double amount = std::stod(input);
+    return input1 > 0.00 && input1 <= MAX_AMOUNT;
 }
 
 string get_transactions(const string &username)
@@ -313,9 +313,13 @@ void handle_client_request(SSL *ssl)
             string username, hashed_password;
             double initial_balance;
             ss >> username >> hashed_password >> initial_balance; // Read initial balance
-
+            
             lock_guard<mutex> lock(db_mutex);
-            if (user_database.find(username) != user_database.end())
+            if(isValidAmount(initial_balance)){
+                
+                response = " Bank side 255 - Invalid amount! Please enter a valid amount in the format: whole.fractional (e.g., 123.45) and within bounds (0.00, 4294967295.99].";
+            }
+            else if (user_database.find(username) != user_database.end())
             {
                 response = " 255 - Username already exists!";
             }
@@ -325,9 +329,6 @@ void handle_client_request(SSL *ssl)
             }
             else if(!validate_username(username)){
                 response = " Bank side 255 - Invalid username!";
-            }
-            else if(!isValidAmount(initial_balance)){
-                response = " Bank Side 255 - Invalid amount! Please enter a valid amount in the format: whole.fractional (e.g., 123.45) and within bounds (0.00, 4294967295.99].";
             }
             else
             {
@@ -343,12 +344,12 @@ void handle_client_request(SSL *ssl)
             stringstream ss(buffer);
             string username, hashed_password;
             ss >> username >> hashed_password;
-
-            lock_guard<mutex> lock(db_mutex);
             if(!validate_username){
                 response = " Bank Side 255 - Invalid username!";
             }
-            else if (user_database.find(username) != user_database.end() && user_database[username] == hashed_password)
+            lock_guard<mutex> lock(db_mutex);
+            
+            if (user_database.find(username) != user_database.end() && user_database[username] == hashed_password)
             {
                 string sessionID = createSession(username);
                 response = "Login successful! SessionID: " + sessionID;
@@ -386,7 +387,7 @@ void handle_client_request(SSL *ssl)
             string session_id;
             double amount;
             ss >> session_id >> amount;
-            if(!isValidAmount(amount)){
+            if(isValidAmount(amount)){
                 response = " Bank giving 255 - Invalid amount! Please enter a valid amount in the format: whole.fractional (e.g., 123.45) and within bounds (0.00, 4294967295.99].";
             }
             else if (validate_session(session_id))
@@ -415,11 +416,11 @@ void handle_client_request(SSL *ssl)
             double amount;
             ss >> session_id >> amount;
 
-            if(!isValidAmount(amount)){
+            if(isValidAmount(amount)){
                 response = " Bank giving 255 - Invalid amount! Please enter a valid amount in the format: whole.fractional (e.g., 123.45) and within bounds (0.00, 4294967295.99].";
             }
 
-            else if (validate_session(session_id))
+            else if (validate_session(session_id) )
             {
                 lock_guard<mutex> lock(db_mutex);
                 string username = active_sessions[session_id];
