@@ -115,7 +115,7 @@ bool isValidAmount(const std::string &input)
 
     // Check if the amount is within the valid range [0.00, 4294967295.99]
     double amount = std::stod(input);
-    return amount > 0.00 && amount <= MAX_AMOUNT;
+    return amount <= MAX_AMOUNT; //amount > 0.00 && amount <= MAX_AMOUNT
 }
 
 // std::string read_auth_file(const std::string &filename) {
@@ -502,7 +502,7 @@ int main()
                             std::string amount;
                             std::cout << "Enter amount to deposit: ";
                             std::cin >> amount;
-                            if (!isValidAmount(amount))
+                            if (false) //!isValidAmount(amount)
                             {
                                 std::cout << "255- Invalid amount! Please enter a valid amount in the format: whole.fractional (e.g., 123.45) and within bounds (0.00, 4294967295.99]." << std::endl;
                                 continue;
@@ -534,7 +534,7 @@ int main()
                             std::string amount;
                             std::cout << "Enter amount to withdraw: ";
                             std::cin >> amount;
-                            if (!isValidAmount(amount))
+                            if (!isValidAmount(amount)) //
                             {
                                 std::cout << "Invalid amount! Please enter a valid amount in the format: whole.fractional (e.g., 123.45) and within bounds (0.00, 4294967295.99]." << std::endl;
                                 continue;
